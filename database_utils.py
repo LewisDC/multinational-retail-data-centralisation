@@ -53,10 +53,27 @@ class DatabaseConnector:
         except Exception as e:
             print(f"Error listing database tables: {e}")
             return None
+        
+    def upload_to_db(self, df, table_name):
+        DATABASE_TYPE = 'postgresql'
+        DBAPI = 'psycopg2'
+        HOST = 'localhost'
+        USER = 'postgres'
+        PASSWORD = 'JunkDB'
+        DATABASE = 'sales_data'
+        PORT = 5432
+        try:
+            engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")# Create a database engine using SQLAlchemy
+            df.to_sql(table_name, engine, if_exists='replace', index=False)
+            print(f"Data has been uploaded to the '{table_name}' table successfully.")
+    
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
 
+# df = cleaned_df
+# table_name = 'dim_users'
+# upload_to_db(df, table_name)
+# db_connector = DatabaseConnector(yaml_file_path)
 
-#db_connector = DatabaseConnector(yaml_file_path)
-
-#tests
 
 

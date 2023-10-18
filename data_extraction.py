@@ -16,8 +16,8 @@ class DataExtractor:
             print(f"Error reading table {table_name}: {e}")
             return None
 
-yaml_file_path = 'db_creds.yaml'
-db_connector = DatabaseConnector(yaml_file_path)
-table_name = "legacy_users"
-user_df = DataExtractor(db_connector).read_rds_table(table_name)
-user_df.describe()
+# yaml_file_path = 'db_creds.yaml'
+# db_connector = DatabaseConnector(yaml_file_path)
+# table_name = "legacy_users"
+# user_df = DataExtractor(db_connector).read_rds_table(table_name)
+# user_df.describe()
