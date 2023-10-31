@@ -55,6 +55,8 @@ class DatabaseConnector:
             return None
         
     def upload_to_db(self, df, table_name):
+        creds = self.read_db_creds(self.yaml_file_path)
+        
         DATABASE_TYPE = 'postgresql'
         DBAPI = 'psycopg2'
         HOST = 'localhost'
