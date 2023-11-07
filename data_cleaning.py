@@ -3,87 +3,101 @@ from datetime import datetime
 
 class DataCleaning:
 
-    def __init__(self, df):
-        self.df = df
-
-    def remove_null_values(self):
+    @staticmethod
+    def remove_null_values(df):
         # Remove rows with 'NULL' values
-        self.df = self.df[~self.df.isin(['NULL']).any(axis=1)]
+        return df[~df.isin(['NULL']).any(axis=1)]
 
-    def remove_duplicates(self):
-        self.df = self.df.drop_duplicates(inplace=True)
-        self.df = self.df.drop_duplicates(subset=['phone_number'], keep=False, inplace=True)
-        self.df = self.df.drop_duplicates(subset=['email_address'], keep=False, inplace=True)
-        self.df = self.df.drop_duplicates(subset=['user_uuid'], keep=False, inplace=True)
+    @staticmethod
+    def remove_duplicates(df):
+        df = df.drop_duplicates()
+        df = df.drop_duplicates(subset=['phone_number'], keep=False)
+        df = df.drop_duplicates(subset=['email_address'], keep=False)
+        df = df.drop_duplicates(subset=['user_uuid'], keep=False)
+        return df
 
-    def clean_country_data(self, valid_country_code=None):
-        
+    @staticmethod
+    def clean_country_data(df, valid_country_code=None):
         if valid_country_code is None:
             valid_country_code = ('GB', 'DE', 'US')
         
-        self.df['country'] = self.df['country'].astype('category')
-        self.df['country_code'] = self.df['country_code'].astype('category')
-        self.df['country_code'] = self.df['country_code'].replace('GGB', 'GB')
-        incorrect_codes = self.df[~self.df['country_code'].isin(valid_country_code)]
-        self.df = self.df.drop(incorrect_codes.index)
-        
+        df['country'] = df['country'].astype('category')
+        df['country_code'] = df['country_code'].astype('category')
+        df['country_code'] = df['country_code'].replace('GGB', 'GB')
+        incorrect_codes = df[~df['country_code'].isin(valid_country_code)]
+        return df.drop(incorrect_codes.index)
 
-    def convert_to_yyyymmdd(self, date_str):
-        try:
-            # Attempt to parse the date using different date formats
-            date = datetime.strptime(date_str, '%Y %B %d')
-        except ValueError:
-            try:
-                date = datetime.strptime(date_str, '%B %Y %d')
-            except ValueError:
-                try:
-                    date = datetime.strptime(date_str, '%Y/%m/%d')
-                except ValueError:
-                    # If none of the formats match, return None or raise an exception
-                    return None
-
-        # Convert the date to 'YYYY-MM-DD' format
-        yyyymmdd = date.strftime('%Y-%m-%d')
-        return yyyymmdd
-    
-    def convert_incorrect_date_formats(self, column_name):
-        try:    
-            condition = ~self.df[column_name].str.match(r'\d{4}-\d{2}-\d{2}')
-            self.df.loc[condition, column_name] = self.df.loc[condition, column_name].apply(self.convert_to_yyyymmdd)
-            return self.df
-        except Exception as e:
-            print(f"Error converting date column {column_name}: {e}")
-            return None
-
-    def convert_dates(self, date_columns):
+    @staticmethod
+    def convert_dates(df, date_columns=None):
+        if date_columns is None:
+            date_columns = ['date_of_birth', 'join_date']
         # Convert date columns to datetime objects
-        for col in date_columns():
-            self.df[col] = pd.to_datetime(self.df[col], errors='coerce')
-
-    def clean_email_addresses(self):
-        # Replace @@ with @ in the "email" column
-        self.df['email_address'] = self.df['email_address'].str.replace('@@', '@')
-
-    def clean_dates(self, date_columns):
         for col in date_columns:
-            self.df[col] = self.df[col].apply(self.convert_incorrect_date_formats)
+            df[col] = pd.to_datetime(df[col], format='%Y-%m-%d', errors='ignore')
+            df[col] = pd.to_datetime(df[col], format='%Y %B %d', errors='ignore')
+            df[col] = pd.to_datetime(df[col], format='%B %Y %d', errors='ignore')
+            df[col] = pd.to_datetime(df[col], errors='coerce')
+        return df
 
-    def clean_addresses():
-        pass
+    @staticmethod
+    def clean_email_addresses(df):
+        # Replace @@ with @ in the "email" column
+        df['email_address'] = df['email_address'].str.replace('@@', '@')
+        return df
 
-    def clean_phone_numbers():
-        pass
+    @staticmethod
+    def clean_addresses(df):
+        df['address'] = df['address'].str.replace("\n", ' ')
+        df['address'] = df['address'].str.title()
+        df['address'] = df['address'].str.split().apply(lambda x: ' '.join(x[:-2] + [word.upper() for word in x[-2:]]))
+        return df
 
-    def clean_user_data(self):
-        self.remove_null_values()
-        self.remove_duplicates()
-        self.clean_country_data()
-        self.clean_email_addresses()
-        date_columns = ['date_of_birth', 'join_date']
-        self.clean_dates(date_columns)
-        self.clean_addresses()
-        self.clean_phone_numbers()
-        self.convert_dates()
+    @staticmethod
+    def clean_phone_numbers(df):
+        try:
+            df[['phone_number', 'phone_ext']] = df['phone_number'].str.split('x', expand=True)
+        except ValueError as e:
+            print(f"No extensions found")
+        df['phone_number'] = df['phone_number'].str.replace('(0)', '')
+        df['phone_number'] = df['phone_number'].str.replace('[^a-zA-Z0-9+]', '', regex=True)
+        return df
+    
+    @staticmethod
+    def convert_data_types(df, column_data_types=None):
+        if column_data_types == None:
+            column_data_types = {
+                'first_name': 'string',
+                'last_name': 'string',
+                'company': 'string',
+                'email_address': 'string',
+                'address': 'string',
+                'phone_number': 'string',
+                'user_uuid': 'string'
+                }
+        for col, data_type in column_data_types.items():
+            if col in df.columns:
+                try:
+                    df[col] = df[col].astype(data_type)
+                except ValueError as e:
+                    print(f"Error converting '{col}' to '{data_type}': {e}")
+            else:
+                print(f"Column '{col}' not found in the DataFrame.")
+        return df
+
+    
+    @staticmethod
+    def clean_user_data(df):
+        df = DataCleaning.remove_null_values(df)
+        df = DataCleaning.remove_duplicates(df)
+        df = DataCleaning.clean_country_data(df)
+        df = DataCleaning.clean_email_addresses(df)
+        df = DataCleaning.convert_dates(df)
+        df = DataCleaning.clean_addresses(df)
+        df = DataCleaning.convert_data_types(df)
+        df = DataCleaning.clean_phone_numbers(df)
+        return df
+    
+        
         
 
 
