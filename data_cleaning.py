@@ -10,6 +10,8 @@ class DataCleaning:
 
     @staticmethod
     def remove_duplicates(df):
+        # Removes duplicates from the DataFrame and then the columns with unique values.
+        # Note: 'keep' is set to False to remove all entries which are duplicates.
         df = df.drop_duplicates()
         df = df.drop_duplicates(subset=['phone_number'], keep=False)
         df = df.drop_duplicates(subset=['email_address'], keep=False)
@@ -18,13 +20,16 @@ class DataCleaning:
 
     @staticmethod
     def clean_country_data(df, valid_country_code=None):
+        #  Establish valid country codes
         if valid_country_code is None:
             valid_country_code = ('GB', 'DE', 'US')
-        
+        # The 'country' and 'country_code' columns are converted to categorical dtypes.
         df['country'] = df['country'].astype('category')
         df['country_code'] = df['country_code'].astype('category')
+        # The 'country_code' column is checked for invalid values, such as 'GGB', and replaced with 'GB'.
         df['country_code'] = df['country_code'].replace('GGB', 'GB')
         incorrect_codes = df[~df['country_code'].isin(valid_country_code)]
+        # Rows with country codes not in the valid_country_code list are removed.
         return df.drop(incorrect_codes.index)
 
     @staticmethod
@@ -36,6 +41,7 @@ class DataCleaning:
             df[col] = pd.to_datetime(df[col], format='%Y-%m-%d', errors='ignore')
             df[col] = pd.to_datetime(df[col], format='%Y %B %d', errors='ignore')
             df[col] = pd.to_datetime(df[col], format='%B %Y %d', errors='ignore')
+            df[col] = pd.to_datetime(df[col], format='%Y/%m/%d', errors='ignore')
             df[col] = pd.to_datetime(df[col], errors='coerce')
         return df
 
@@ -47,23 +53,30 @@ class DataCleaning:
 
     @staticmethod
     def clean_addresses(df):
+        # Removes unwanted formatting
         df['address'] = df['address'].str.replace("\n", ' ')
+        # Capitalise the first letter
         df['address'] = df['address'].str.title()
+        # Capitalise Zip codes, postal codes (includes city for German addresses)
         df['address'] = df['address'].str.split().apply(lambda x: ' '.join(x[:-2] + [word.upper() for word in x[-2:]]))
         return df
 
     @staticmethod
     def clean_phone_numbers(df):
+        # Extracts extension numbers present in some US phone numbers and relocates them to a new column
         try:
             df[['phone_number', 'phone_ext']] = df['phone_number'].str.split('x', expand=True)
         except ValueError as e:
             print(f"No extensions found")
+        # Removes the bracketed zero '(0)' from numbers with the country code present
         df['phone_number'] = df['phone_number'].str.replace('(0)', '')
+        # Strips all non-alphanumeric characters except for '+'
         df['phone_number'] = df['phone_number'].str.replace('[^a-zA-Z0-9+]', '', regex=True)
         return df
     
     @staticmethod
     def convert_data_types(df, column_data_types=None):
+        #Convert alphanumeric columns to 'string' dtype for consistency, simplicity and compatibility
         if column_data_types == None:
             column_data_types = {
                 'first_name': 'string',
@@ -97,6 +110,22 @@ class DataCleaning:
         df = DataCleaning.clean_phone_numbers(df)
         return df
     
+    @staticmethod
+    def clean_card_data(df2):
+        # 
+        df2 = df2.drop_duplicates(keep=False)
+        df2['card_number'] = df2['card_number'].str.replace('?', '')
+        df2 = df2[~df2['card_number'].str.contains('[a-zA-Z?]', na=False)]
+        df2 = DataCleaning.convert_dates(df2, ['date_payment_confirmed'])
+        df2 = df2.dropna()
+        column_data_types = {
+            'card_number': 'string',
+            'expiry_date': 'string',
+            'card_provider': 'string'            
+        }
+        df2 = DataCleaning.convert_data_types(df2, column_data_types)
+        return df2
+
         
         
 
