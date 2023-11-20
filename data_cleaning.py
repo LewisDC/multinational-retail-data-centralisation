@@ -75,18 +75,6 @@ class DataCleaning:
     @staticmethod
     def convert_data_types(df, column_data_types=None):
         #Convert alphanumeric columns to 'string' dtype for consistency, simplicity and compatibility
-        if column_data_types == None:
-            column_data_types = {
-                'first_name': 'string',
-                'last_name': 'string',
-                'company': 'string',
-                'email_address': 'string',
-                'address': 'string',
-                'country': 'category',
-                'country_code': 'category',
-                'phone_number': 'string',
-                'user_uuid': 'string'
-                }
         for col, data_type in column_data_types.items():
             if col in df.columns:
                 try:
@@ -99,23 +87,30 @@ class DataCleaning:
     
     @staticmethod
     def convert_product_weights(weight_str):
+        # Convert the values to string before normalising the data to kilograms, removing unwanted characters and converting them to 'float' dtype 
         weight_str = str(weight_str)
+        # Calculate total weight of multipacks
         if 'x' in weight_str:
             weight_str = weight_str.replace('g', '')
             factors = weight_str.split(' x ')
             return float(factors[0]) * float(factors[1]) / 1000
+        # Remove misplaced full stop
         elif weight_str.endswith('.'):
             weight_str = weight_str.replace(' .', '')
             return weight_str
+        # kg to kg
         elif weight_str.endswith('kg'):
             weight_str = weight_str.replace('kg', '')
             return float(weight_str)
+        # g to kg
         elif weight_str.endswith('g'):
             weight_str = weight_str.replace('g', '')
             return float(weight_str) / 1000
+        # ml to kg
         elif weight_str.endswith('ml'):
             weight_str = weight_str.replace('ml', '')
             return float(weight_str) / 1000
+        # Oz to kg
         elif weight_str.endswith('oz'):
             weight_str = weight_str.replace('oz', '')
             return float(weight_str) * 0.0283495
