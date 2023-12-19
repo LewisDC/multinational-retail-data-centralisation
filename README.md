@@ -513,7 +513,7 @@ WITH SalesData AS (
 
 I then used the `CONCAT` function get the desired output format.
 
-```
+```sql
 SELECT
     year,
     CONCAT('"hours": ',EXTRACT(hours FROM AVG(avg_time_between_sales)),' ',
