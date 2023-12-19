@@ -96,7 +96,7 @@ class DataExtractor:
         df = pd.read_csv(response['Body'])
         return df
     
-
+    
 if __name__=="__main__":
     yaml_file_path = 'db_creds.yaml'
 
@@ -109,42 +109,41 @@ if __name__=="__main__":
     header = {creds['KEY']: creds['VALUE']}
     retrieve_a_store_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/'
     return_number_stores_endpoint = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
-      
-    ### users details
-    users_df = DataExtractor(db_connector).read_rds_table(table_names[1])
+
+    ### Users details ETL
+    users_df = extractor.read_rds_table(table_names[1])
     
     cleaned_users_df = DataCleaning.clean_user_data(users_df)
     db_connector.upload_to_db(cleaned_users_df, table_name='dim_users')
 
-    ### Card details
-    card_details_df = DataExtractor.retrieve_pdf_data()
+    ### Card details ETL
+    card_details_df = extractor.retrieve_pdf_data()
     
     cleaned_card_details_df = DataCleaning.clean_card_data(card_details_df)
     db_connector.upload_to_db(cleaned_card_details_df, table_name='dim_card_details')
 
-    ### stores
+    ### Stores data ETL
     number_of_stores = extractor.list_number_of_stores(return_number_stores_endpoint, header)
     stores_df = extractor.retrieve_stores_data(number_of_stores, retrieve_a_store_endpoint, header)
 
     cleaned_stores_df = DataCleaning.clean_store_data(stores_df)
     db_connector.upload_to_db(cleaned_stores_df, table_name='dim_store_details')
 
-    ### Products
+    ### Products data ETL
     s3_address = 's3://data-handling-public/products.csv'
     product_data_df = extractor.extract_from_s3(s3_address)
 
     cleaned_product_data_df = DataCleaning.clean_products_data(product_data_df)
     db_connector.upload_to_db(cleaned_product_data_df, table_name='dim_products')
-    
-    ### Orders
+
+    ### Orders data ETL
     orders_data_df = extractor.read_rds_table('orders_table')
 
     cleaned_orders_data_df = DataCleaning.clean_orders_data(orders_data_df)
     db_connector.upload_to_db(orders_data_df, table_name='orders_table')
 
-    ### Date events
+    ### Date events ETL
     date_events_data_df = pd.read_json('https://data-handling-public.s3.eu-west-1.amazonaws.com/date_details.json')
     
     cleaned_date_events_data_df = DataCleaning.clean_date_events_data(date_events_data_df)
     db_connector.upload_to_db(cleaned_date_events_data_df, table_name='dim_date_times')
-
