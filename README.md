@@ -2,7 +2,7 @@
 
 In this project I am tasked with extracting data from a multitude of sources and cleaning it before uploading it to a local postgres database. It demonstrates my use of python and various packages and modules to create utility classes for handling, cleaning, and extracting the data. These classes are designed to simplify common data handling tasks in a structured and modular way.
 
-I learned a great deal working on this project, how to extract data from SQL tables, PDF files, API endpoints and S3 buckets. How to use VSCode to effectively clean and transform messy datasets into pandas dataframes...
+I learned a great deal working on this project, how to extract data from SQL tables, PDF files, API endpoints and S3 buckets. How to use VSCode to effectively clean and transform messy datasets into pandas dataframes. Utilise various python packages to optimise ETL tasks. 
 
 ## Contents
 
