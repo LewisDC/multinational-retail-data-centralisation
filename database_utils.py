@@ -1,3 +1,4 @@
+import psycopg2
 import yaml
 from sqlalchemy import create_engine, inspect
 
@@ -70,7 +71,7 @@ class DatabaseConnector:
                 return engine
             except Exception as e:
                 # Return an error message if it fails
-                print("Failed to initialise the database engine: {e}")
+                print(f"Failed to initialise the database engine: {e}")
                 return None
         else:
             print("Failed to initialize the database engine.")

@@ -1,5 +1,4 @@
 from database_utils import DatabaseConnector
-from data_cleaning import DataCleaning
 import boto3
 import pandas as pd
 import requests
@@ -33,7 +32,7 @@ class DataExtractor:
     Note: This class assumes the existence of the `DatabaseConnector` and `DataCleaning` classes.
     """
 
-    def __init__(self, db_connector : DatabaseConnector):
+    def __init__(self, db_connector: DatabaseConnector):
         self.db_connector = db_connector
         
     def read_rds_table(self, table_name: str) -> pd:
@@ -49,7 +48,7 @@ class DataExtractor:
             print(f"Error reading table {table_name}: {e}")
             return None
 
-    def retrieve_pdf_data(pdf_url: str=None) -> pd:
+    def retrieve_pdf_data(self, pdf_url=None) -> pd:
         """Retrieve data from a PDF file and return it as a pandas DataFrame."""
 
         if pdf_url == None:
