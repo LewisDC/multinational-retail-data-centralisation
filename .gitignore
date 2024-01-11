@@ -1,2 +1,6 @@
+### Python ###
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Credentials
 db_creds.yaml
-__pycache__
