@@ -44,7 +44,7 @@ class DatabaseConnector:
             with open(yaml_file_path, 'r') as yaml_file:
                 creds = yaml.safe_load(yaml_file)  
             return creds
-        except Exception as e:
+        except yaml.YAMLError as e:
             # Return an error message if it fails
             print(f"Error reading YAML file: {e}")
             return None
@@ -69,7 +69,7 @@ class DatabaseConnector:
                 # Initialize and return the SQLAlchemy engine
                 engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{ENDPOINT}:{PORT}/{DATABASE}")
                 return engine
-            except Exception as e:
+            except psycopg2.OperationalError as e:
                 # Return an error message if it fails
                 print(f"Failed to initialise the database engine: {e}")
                 return None
@@ -115,7 +115,7 @@ class DatabaseConnector:
                 # Print confirmation message
                 print(f"Data has been uploaded to the '{table_name}' table successfully.")
         
-            except Exception as e:
+            except psycopg2.OperationalError as e:
                 # Return an error message if it fails
                 print(f"An error occurred: {str(e)}")
 
